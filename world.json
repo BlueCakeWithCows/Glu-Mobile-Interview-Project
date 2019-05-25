@@ -1,0 +1,46 @@
+{
+  "0,0,0":{
+    "label":"Entrance",
+    "description":"A moldy room where adventures begin."
+  },
+  "0,1,0":{
+    "label":"Creepy Forest",
+    "description":"The light fades as you enter the forest, turning into a strange dark and quiet place, the sounds have all but vanished. The smell of animal or beast hangs in a still air, no flowers seem to help the uneasy odor. In the dim light you see shadows dart about, you barely hear the sound of things moving, and you feel as if everything is watching you."
+  },
+  "1,0,0":{
+    "label":"Banner Hall",
+    "description":"his room is hung with hundreds of dusty tapestries. All show signs of wear: moth holes, scorch marks, dark stains, and the damage of years of neglect. They hang on all the walls and hang from the ceiling to brush against the floor, blocking your view of the rest of the room."
+  },
+  "-1,0,0":{
+    "label":"Cave",
+    "description":" You pull open the door and hear the scrape of its opening echo throughout what must be a massive room. Peering inside, you see a vast cavern. Stalactites drip down from the ceiling in sharp points while flowstone makes strange shapes on the floor."
+  },
+  "0,-1,0":{
+    "label":"Hidden Entrance",
+    "description":"A presumably very deep pit. You can't see the bottom although you think you might've heard screams. Best not to dwell on it."
+  },
+  "0,0,1":{
+    "label":"Trapped Hallway",
+    "description":"Huge rusted metal blades jut out of cracks in the walls, and rusting spikes project down from the ceiling almost to the floor. This room may have once been trapped heavily, but someone triggered them, apparently without getting killed. The traps were never reset and now seem rusted in place."
+  },
+  "0,0,-1":{
+    "label":"Office",
+    "description":"Many small desks with high-backed chairs stand in three long rows in this room. Each desk has an inkwell, book stand, and a partially melted candle in a rusting tin candleholder. Everything is covered with dust. "
+  },
+  "1,1,0":{
+    "label":"Torture Chamber",
+    "description":"You've opened the door to a torture chamber. Several devices of degradation, pain, and death stand about the room, all of them showing signs of regular use. The wood of the rack is worn smooth by struggling bodies, and the iron maiden appears to be occupied by a corpse."
+  },
+  "1,-1,0":{
+    "label":"Bathroom",
+    "description":"his small room is lined with benchlike seats on all the walls. The seats all have holes in their top, like a privy. Facing stones on the front of the benches prevent you from seeing how deep the holes go. It looks like a communal bathroom. "
+  },
+  "-1,1,0":{
+    "label":"Mimic Chamber",
+    "description":"This small bare chamber holds nothing but a large ironbound chest, which is big enough for a man to fit in and bears a heavy iron lock. The floor has a layer of undisturbed dust upon it."
+  },
+  "-1,-1,0":{
+    "label":"Scary Forest",
+    "description":"The black and brown thorns wrap around the forest, almost like teeth waiting to tear at you. The trees seem to close in, choking out the light and letting the fog roll around like a breath. Sharp shadows, darker than the deepest forest slink about just out of sight, while unseen creatures move branches and, you swear, even a tree..."
+  }
+}
