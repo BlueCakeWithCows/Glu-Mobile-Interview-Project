@@ -88,8 +88,7 @@ io.on('connection', function(socket) {
     function getSession(data){
         let username = data.username;
         let session_id = data.session_id;
-        if (!isAlphaNumeric(username)
-            || username === "SERVER"
+        if (username === "SERVER"
             || username === "LOG"
             || !(username in playerdata) || playerdata[username]['session_id'] !== session_id) {
             //socket.disconnect(true);
@@ -110,6 +109,7 @@ io.on('connection', function(socket) {
         if (playerdata[username]['session_id'] !== session_id) {
             return;
         }
+
         playerdata[username]['socket'] = socket;
         session_user = playerdata[username];
         enter_room(playerdata[username], playerdata[username].room);
