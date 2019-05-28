@@ -103,14 +103,14 @@ if (!checkCookie('username')){
         setCookie('username', username, 365);
     }
 }
-if (!checkCookie('session_id')){
-    setCookie('session_id', uuidv4());
+if (!checkCookie('sessionID')){
+    setCookie('sessionID', uuidv4());
 }
 let username = getCookie('username');
-let session_id = getCookie('session_id');
+let sessionID = getCookie('sessionID');
 
 const socket = io();
-socket.emit('login', { username: username, session_id: session_id });
+socket.emit('login', { username: username, session_id: sessionID });
 
 
 socket.on('message', function(data) {
@@ -143,5 +143,5 @@ function sendMessage() {
         return;
     }
     DOM.input.value = '';
-    socket.emit('message', {session_id: session_id, username: username, message: value});
+    socket.emit('message', {session_id: sessionID, username: username, message: value});
 }

@@ -14,7 +14,7 @@ app.get('/', function(request, response) {
 });
 
 const fs = require('fs');
-let world_json = JSON.parse(fs.readFileSync('./world.json', 'utf8'));
+let worldJson = JSON.parse(fs.readFileSync('./world.json', 'utf8'));
 
 // Starts the server.
 server.listen(5000, function() {
@@ -29,19 +29,19 @@ const DIRECTIONS = {
     'NORTH':{x:0, y:0, z: 1},
     'SOUTH':{x:0, y:0, z: -1}
 };
-let playerData = {};
+let userMap = {};
 let rooms = {};
 
-function validDirections(loc){
-    let valid_moves = {};
+function getLegalMoves(loc){
+    let legalMoves = {};
     for (let dir in DIRECTIONS) {
         let vector = DIRECTIONS[dir];
-        let new_loc = {x: vector['x'] + loc['x'], y: vector['y'] + loc['y'], z: vector['z'] + loc['z']};
-        if (locToString(new_loc) in world_json) {
-            valid_moves[dir] = new_loc;
+        let newLoc = {x: vector['x'] + loc['x'], y: vector['y'] + loc['y'], z: vector['z'] + loc['z']};
+        if (locToString(newLoc) in worldJson) {
+            legalMoves[dir] = newLoc;
         }
     }
-    return valid_moves;
+    return legalMoves;
 }
 
 function locToString(loc) {
@@ -69,42 +69,42 @@ function getUsersInRoom(loc){
 }
 
 io.on('connection', function(socket) {
-    let session_user = '';
+    let sessionUser = '';
     function getSession(data){
         let username = data.username;
-        let session_id = data.session_id;
+        let sessionID = data.session_id;
         if (username === "SERVER"
             || username === "LOG"
-            || !(username in playerData) || playerData[username]['session_id'] !== session_id) {
+            || !(username in userMap) || userMap[username]['sessionID'] !== sessionID) {
             //socket.disconnect(true);
             return null;
         }
-        return playerData[username];
+        return userMap[username];
     }
     socket.on('login', function(data) {
         let username = data.username;
-        let session_id = data.session_id;
-        if (!(username in playerData) || playerData[username] === undefined) {
-            let new_player = {};
-            new_player['session_id'] = session_id;
-            new_player['room'] = {x:0, y:0, z:0};
-            new_player['username'] = username;
-            playerData[username] = new_player
+        let sessionID = data.session_id;
+        if (!(username in userMap) || userMap[username] === undefined) {
+            let newUser = {};
+            newUser['sessionID'] = sessionID;
+            newUser['room'] = {x:0, y:0, z:0};
+            newUser['username'] = username;
+            userMap[username] = newUser
         }
-        if (playerData[username]['session_id'] !== session_id) {
+        if (userMap[username]['sessionID'] !== sessionID) {
             return;
         }
 
-        playerData[username]['socket'] = socket;
-        session_user = playerData[username];
-        enter_room(playerData[username], playerData[username].room);
+        userMap[username]['socket'] = socket;
+        sessionUser = userMap[username];
+        enterRoom(userMap[username], userMap[username].room);
         console.log("Established connection with " + username);
     });
     socket.on('disconnect', function() {
-        if( getUsersInRoom(session_user.room).includes(session_user.username)) {
-            send_all_in_room(session_user.room, "SERVER", session_user.username + " left the room.");
-            send_all_in_room_packet(session_user.room, "room_left", {member: session_user.username});
-            delMember(session_user.room, session_user.username);
+        if( getUsersInRoom(sessionUser.room).includes(sessionUser.username)) {
+            sendAllInRoomMessage(sessionUser.room, "SERVER", sessionUser.username + " left the room.");
+            sendAllInRoomPacket(sessionUser.room, "room_left", {member: sessionUser.username});
+            delMember(sessionUser.room, sessionUser.username);
         }
     });
 
@@ -116,15 +116,15 @@ io.on('connection', function(socket) {
 
         switch (args[0].toLowerCase()){
             case 'help':
-                command_help(player, args);
+                commandHelp(player, args);
                 break;
             case 'say':
                 if (args.length < 2) { return; }
-                command_say(player, args);
+                commandSay(player, args);
                 break;
             case 'yell':
                 if (args.length < 2) { return; }
-                command_yell(player, args);
+                commandYell(player, args);
                 break;
             case 'north':
             case 'south':
@@ -132,13 +132,13 @@ io.on('connection', function(socket) {
             case 'west':
             case 'up':
             case 'down':
-                command_move(player, args);
+                commandMove(player, args);
                 break;
         }
     });
 
     // noinspection JSUnusedLocalSymbols
-    function command_help(user, args) {
+    function commandHelp(user, args) {
         // noinspection HtmlUnknownTag
         let helps = ['help: Gives list of commands and usages.',
             'yell: Sends message to all players currently connected.',
@@ -146,66 +146,66 @@ io.on('connection', function(socket) {
             '<direction>: moves player to room in that direction'];
         socket.emit('message', {sender: 'LOG', body: helps.join('\n')});
     }
-    function command_yell(user, args) {
+    function commandYell(user, args) {
         let message = args.slice(1).join(" ");
-        for  (let username in playerData) {
-            let sock = playerData[username].socket;
+        for  (let username in userMap) {
+            let sock = userMap[username].socket;
             sock.emit('message', {sender: user.username, body: message});
         }
     }
-    function command_move(user, args){
+    function commandMove(user, args){
         let dir = args[0].toUpperCase();
-        let valid_moves = validDirections(user.room);
-        if (dir in valid_moves){
-            enter_room(user, valid_moves[dir]);
+        let legalMoves = getLegalMoves(user.room);
+        if (dir in legalMoves){
+            enterRoom(user, legalMoves[dir]);
         } else {
             socket.emit('message', {sender: 'LOG', body: 'Invalid Move'});
         }
     }
 
-    function command_say(user, args){
+    function commandSay(user, args){
         let message = args.slice(1).join(" ");
         let users = getUsersInRoom(user.room);
         for  (let i in users) {
             let username = users[i];
-            let sock = playerData[username].socket;
+            let sock = userMap[username].socket;
             sock.emit('message', {sender: user.username, body: message});
         }
     }
 
     //Directly moves user to a room, only called from initial login or other commands
-    function enter_room(user, location) {
+    function enterRoom(user, location) {
         if( getUsersInRoom(user.room).includes(user.username)) {
-            send_all_in_room(user.room, "SERVER", user.username + " left the room.");
-            send_all_in_room_packet(user.room, "room_left", {member: user.username});
+            sendAllInRoomMessage(user.room, "SERVER", user.username + " left the room.");
+            sendAllInRoomPacket(user.room, "room_left", {member: user.username});
             delMember(user.room, user.username);
         }
         user.room = location;
         socket.emit('room_enter', {
             members:getUsersInRoom(user.room),
-            label:world_json[locToString(user.room)]['label'],
+            label:worldJson[locToString(user.room)]['label'],
             location: user.room,
-            description:world_json[locToString(user.room)]['description'],
-            directions: validDirections(user.room)
+            description:worldJson[locToString(user.room)]['description'],
+            directions: getLegalMoves(user.room)
         });
         addMember(location, user.username);
-        send_all_in_room_packet(user.room, "room_join", {member: user.username});
-        send_all_in_room(user.room, "SERVER", user.username + " entered the room.");
+        sendAllInRoomPacket(user.room, "room_join", {member: user.username});
+        sendAllInRoomMessage(user.room, "SERVER", user.username + " entered the room.");
 
     }
-    function send_all_in_room(room, sender, message) {
+    function sendAllInRoomMessage(room, sender, message) {
         let users = getUsersInRoom(room);
         for  (let i in users) {
             let username = users[i];
-            let sock = playerData[username].socket;
+            let sock = userMap[username].socket;
             sock.emit('message', {sender: sender, body: message});
         }
     }
-    function send_all_in_room_packet(room, tag, data) {
+    function sendAllInRoomPacket(room, tag, data) {
         let users = getUsersInRoom(room);
         for  (let i in users) {
             let username = users[i];
-            let sock = playerData[username].socket;
+            let sock = userMap[username].socket;
             sock.emit(tag, data);
         }
     }
