@@ -1,0 +1,11 @@
+{
+  "name": "InterviewGame",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "latest",
+    "socket.io": "latest"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.1"
+  }
+}

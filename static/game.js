@@ -8,12 +8,12 @@ function getCookie(cname) {
     let name = cname + "=";
     let decodedCookie = decodeURIComponent(document.cookie);
     let ca = decodedCookie.split(';');
-    for(var i = 0; i <ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
+    for(let i = 0; i <ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') {
             c = c.substring(1);
         }
-        if (c.indexOf(name) == 0) {
+        if (c.indexOf(name) === 0) {
             return c.substring(name.length, c.length);
         }
     }
@@ -73,11 +73,11 @@ function createMessageElement(text, member) {
     el.appendChild(createMemberElement(member));
     let myDiv = document.createElement("div");
     myDiv.id = 'myDiv';
-    myDiv.innerHTML = ''
+    myDiv.innerHTML = '';
     let messages = text.split('\n') || [text];
     for (let i in messages.slice(0, -1)) {
         el.appendChild(document.createTextNode(messages[i]));
-        el.appendChild(document.createElement("br"))
+        el.appendChild(document.createElement("br"));
         el.appendChild(createMemberElement(''));
 
     }
@@ -99,7 +99,7 @@ function addMessageToListDOM(text, member) {
 
 if (!checkCookie('username')){
     let username = prompt("Please enter your name:", "");
-    if (username != "" && username != null) {
+    if (username !== "" && username != null) {
         setCookie('username', username, 365);
     }
 }
@@ -109,7 +109,7 @@ if (!checkCookie('session_id')){
 let username = getCookie('username');
 let session_id = getCookie('session_id');
 
-var socket = io();
+const socket = io();
 socket.emit('login', { username: username, session_id: session_id });
 
 
@@ -143,6 +143,5 @@ function sendMessage() {
         return;
     }
     DOM.input.value = '';
-    let message = value;
-    socket.emit('message', {session_id: session_id, username: username, message: message});
+    socket.emit('message', {session_id: session_id, username: username, message: value});
 }

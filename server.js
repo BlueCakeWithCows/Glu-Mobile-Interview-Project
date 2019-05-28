@@ -1,11 +1,11 @@
 // Dependencies
-var express = require('express');
-var http = require('http');
-var path = require('path');
-var socketIO = require('socket.io');
-var app = express();
-var server = http.Server(app);
-var io = socketIO(server);
+const express = require('express');
+const http = require('http');
+const path = require('path');
+const socketIO = require('socket.io');
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
 app.set('port', 5000);
 app.use('/static', express.static(__dirname + '/static'));
 // Routing
@@ -13,7 +13,7 @@ app.get('/', function(request, response) {
     response.sendFile(path.join(__dirname, 'index.html'));
 });
 
-var fs = require('fs');
+const fs = require('fs');
 let world_json = JSON.parse(fs.readFileSync('./world.json', 'utf8'));
 
 // Starts the server.
@@ -21,22 +21,6 @@ server.listen(5000, function() {
     console.log('Starting server on port 5000');
 });
 // Add the WebSocket handlers
-
-function isAlphaNumeric(str) {
-    var code, i, len;
-
-    for (i = 0, len = str.length; i < len; i++) {
-        code = str.charCodeAt(i);
-        if (!(code > 47 && code < 58) && // numeric (0-9)
-            !(code > 64 && code < 91) && // upper alpha (A-Z)
-            !(code > 96 && code < 123)) { // lower alpha (a-z)
-            return false;
-        }
-    }
-    return true;
-};
-
-
 const DIRECTIONS = {
     'EAST':{x:1, y:0, z: 0},
     'WEST':{x:-1, y:0, z: 0},
@@ -45,24 +29,25 @@ const DIRECTIONS = {
     'NORTH':{x:0, y:0, z: 1},
     'SOUTH':{x:0, y:0, z: -1}
 };
-let playerdata = {};
-let socket_to_username = new Map();
+let playerData = {};
 let rooms = {};
 
 function validDirections(loc){
-    valid_moves = {};
+    let valid_moves = {};
     for (let dir in DIRECTIONS) {
-        vector = DIRECTIONS[dir];
-        new_loc = {x: vector['x'] + loc['x'], y: vector['y'] + loc['y'], z: vector['z'] + loc['z']};
+        let vector = DIRECTIONS[dir];
+        let new_loc = {x: vector['x'] + loc['x'], y: vector['y'] + loc['y'], z: vector['z'] + loc['z']};
         if (locToString(new_loc) in world_json) {
-                   valid_moves[dir] = new_loc;
+            valid_moves[dir] = new_loc;
         }
     }
     return valid_moves;
 }
 
 function locToString(loc) {
-    if (loc === undefined) { return undefined};
+    if (loc === undefined) {
+        return undefined
+    }
     return loc['x'] + "," + loc['y'] + "," + loc['z'];
 }
 function addMember(loc, username){
@@ -84,35 +69,35 @@ function getUsersInRoom(loc){
 }
 
 io.on('connection', function(socket) {
-    let session_user = ''
+    let session_user = '';
     function getSession(data){
         let username = data.username;
         let session_id = data.session_id;
         if (username === "SERVER"
             || username === "LOG"
-            || !(username in playerdata) || playerdata[username]['session_id'] !== session_id) {
+            || !(username in playerData) || playerData[username]['session_id'] !== session_id) {
             //socket.disconnect(true);
             return null;
         }
-        return playerdata[username];
+        return playerData[username];
     }
     socket.on('login', function(data) {
         let username = data.username;
         let session_id = data.session_id;
-        if (!(username in playerdata) || playerdata[username] === undefined) {
-            let new_player = {}
+        if (!(username in playerData) || playerData[username] === undefined) {
+            let new_player = {};
             new_player['session_id'] = session_id;
             new_player['room'] = {x:0, y:0, z:0};
             new_player['username'] = username;
-            playerdata[username] = new_player
+            playerData[username] = new_player
         }
-        if (playerdata[username]['session_id'] !== session_id) {
+        if (playerData[username]['session_id'] !== session_id) {
             return;
         }
 
-        playerdata[username]['socket'] = socket;
-        session_user = playerdata[username];
-        enter_room(playerdata[username], playerdata[username].room);
+        playerData[username]['socket'] = socket;
+        session_user = playerData[username];
+        enter_room(playerData[username], playerData[username].room);
         console.log("Established connection with " + username);
     });
     socket.on('disconnect', function() {
@@ -152,7 +137,9 @@ io.on('connection', function(socket) {
         }
     });
 
+    // noinspection JSUnusedLocalSymbols
     function command_help(user, args) {
+        // noinspection HtmlUnknownTag
         let helps = ['help: Gives list of commands and usages.',
             'yell: Sends message to all players currently connected.',
             'say: Sends message to all players in current room',
@@ -161,12 +148,11 @@ io.on('connection', function(socket) {
     }
     function command_yell(user, args) {
         let message = args.slice(1).join(" ");
-        for  (let username in playerdata) {
-            let sock = playerdata[username].socket;
+        for  (let username in playerData) {
+            let sock = playerData[username].socket;
             sock.emit('message', {sender: user.username, body: message});
         }
-    };
-
+    }
     function command_move(user, args){
         let dir = args[0].toUpperCase();
         let valid_moves = validDirections(user.room);
@@ -182,7 +168,7 @@ io.on('connection', function(socket) {
         let users = getUsersInRoom(user.room);
         for  (let i in users) {
             let username = users[i];
-            let sock = playerdata[username].socket;
+            let sock = playerData[username].socket;
             sock.emit('message', {sender: user.username, body: message});
         }
     }
@@ -211,7 +197,7 @@ io.on('connection', function(socket) {
         let users = getUsersInRoom(room);
         for  (let i in users) {
             let username = users[i];
-            let sock = playerdata[username].socket;
+            let sock = playerData[username].socket;
             sock.emit('message', {sender: sender, body: message});
         }
     }
@@ -219,7 +205,7 @@ io.on('connection', function(socket) {
         let users = getUsersInRoom(room);
         for  (let i in users) {
             let username = users[i];
-            let sock = playerdata[username].socket;
+            let sock = playerData[username].socket;
             sock.emit(tag, data);
         }
     }
